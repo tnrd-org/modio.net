@@ -30,7 +30,7 @@ jobs:
         run: dotnet pack -c Release --no-build -o nupkgs -p:PackageVersion=${GITHUB_REF##*/v} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
       - name: Upload
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v0.1.15
         with:
           files: |
             nupkgs/*.nupkg
