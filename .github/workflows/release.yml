@@ -12,33 +12,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Setup .NET Core 3.1
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.101'
-
-      - name: Setup NuGet
-        uses: nuget/setup-nuget@v1
-
-      - name: Setup NuGet source
-        run: |
-          nuget sources add -name github \
-                            -source https://nuget.pkg.github.com/nickelc/index.json \
-                            -username nickelc -password ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
 
       - name: Restore
         run: dotnet restore
 
       - name: Build
         run: dotnet build -c Release --no-restore -p:Version=${GITHUB_REF##*/v}
+        
+      - name: Test
+        run: dotnet test -c Release --no-build
 
       - name: Package
-        run: |
-          dotnet pack -c Release --no-build -o nupkgs \
-                      -p:PackageVersion=${GITHUB_REF##*/v} \
-                      -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
+        run: dotnet pack -c Release --no-build -o nupkgs -p:PackageVersion=${GITHUB_REF##*/v} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg
 
       - name: Upload
         uses: softprops/action-gh-release@v1
@@ -50,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish
-        run: dotnet nuget push nupkgs/*.nupkg -source github
+        run: dotnet nuget push nupkgs/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
 
       - name: Publish snupkg
-        run: dotnet nuget push nupkgs/*.snupkg -source github
+        run: dotnet nuget push nupkgs/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
